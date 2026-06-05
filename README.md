@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/dortanes/atlas/releases"><img src="https://img.shields.io/badge/download-v0.2.3-7c3aed?style=for-the-badge&logo=windows&logoColor=white" alt="Download" /></a>&nbsp;
+  <a href="https://github.com/KISHOR-glitch/Ai-Desktop-Agent/releases"><img src="https://img.shields.io/badge/download-v0.2.3-7c3aed?style=for-the-badge&logo=windows&logoColor=white" alt="Download" /></a>&nbsp;
   <a href="#-getting-started"><img src="https://img.shields.io/badge/get%20started-→-0ea5e9?style=for-the-badge" alt="Get Started" /></a>&nbsp;
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache%202.0-gray?style=for-the-badge" alt="License" /></a>
 </p>
@@ -138,8 +138,8 @@ Enable per-request session logs to trace the full pipeline: intent classificatio
 > For contributors and developers who want to run Atlas from source.
 
 ```bash
-git clone https://github.com/dortanes/atlas.git
-cd atlas
+git clone https://github.com/KISHOR-glitch/Ai-Desktop-Agent.git
+cd Ai-Desktop-Agent
 yarn install
 yarn dev
 ```
@@ -175,7 +175,7 @@ yarn dev
 
 If you find Atlas useful, please consider giving the repository a **star** ⭐ — it helps others discover the project and motivates further development!
 
-[![Star on GitHub](https://img.shields.io/github/stars/dortanes/atlas?style=social)](https://github.com/dortanes/atlas)
+[![Star on GitHub](https://img.shields.io/github/stars/KISHOR-glitch/Ai-Desktop-Agent?style=social)](https://github.com/KISHOR-glitch/Ai-Desktop-Agent)
 
 ## 🤝 Contributing
 
@@ -188,5 +188,5 @@ Contributions are welcome! Feel free to open an issue or submit a pull request.
 ---
 
 <p align="center">
-  Vibecoded with ❤️ by <a href="https://github.com/dortanes">dortanes</a>
+  AI Desktop Agent by Kishor S R 
 </p>

@@ -2,11 +2,11 @@
   <img src="build/icon.png" width="128" height="128" alt="Atlas" />
 </p>
 
-<h1 align="center">Atlas</h1>
+<h1 align="center">AI Desktop Agent</h1>
 
 <p align="center">
-  <b>AI agent that lives on your desktop.</b><br/>
-  It sees your screen, understands what you need, and gets things done — hands-free.
+  <b>Privacy-First Desktop Agent with Local LLM.</b><br/>
+  Run AI locally with Ollama • No cloud dependency • Complete control over your data.
 </p>
 
 <p align="center">
@@ -25,20 +25,21 @@
 
 ---
 
-> **⚠️ Atlas is in active development (v0.2.3).**
+> **📚 Educational Implementation (v0.2.3)**
 > 
-> - 🤖 **LLM support:** Gemini (including native [Computer Use API](https://ai.google.dev/gemini-api/docs/computer-use)) and OpenAI. More providers on the way.
-> - 🖥 **Screen control:** Gemini 3.x models use native [Computer Use API](https://ai.google.dev/gemini-api/docs/computer-use) for precise actions. Older models use vision-based coordinate prediction.
-> - 💻 **Platform:** Windows only for now. macOS & Linux support is planned.
-> - 🐛 **Found a bug?** We'd love to hear about it — [open an issue](https://github.com/dortanes/atlas/issues).
+> - 🔒 **Privacy-First:** Local LLM integration via Ollama — zero cloud dependencies
+> - 🤖 **LLM Support:** Ollama (local models), Gemini API, OpenAI (optional)
+> - 🖥 **Screen Control:** Vision-based automation with desktop control capabilities
+> - 💻 **Platform:** Windows (primary). macOS & Linux compatible
+> - 🎓 **Academic Project:** Enhanced from original with local-first architecture
 
 ---
 
-## What is Atlas?
+## What is AI Desktop Agent?
 
-Atlas is an **AI-powered desktop agent** that works alongside you as a transparent overlay. Press `Ctrl+Space`, tell it what to do — and it figures out the rest: navigating apps, clicking buttons, typing text, searching the web, finding files, running commands.
+AI Desktop Agent is a **privacy-first, locally-powered desktop automation system** that keeps all data on your machine. Press `Ctrl+Space`, speak or type your commands — the agent understands your screen context and executes tasks end-to-end without sending data to the cloud.
 
-Think of it as a **copilot for your entire OS**.
+Think of it as an **offline-first copilot for your entire OS** — with the security and autonomy you deserve.
 
 - 🖥 **Sees your screen** — captures what's on your display and understands the context
 - 🧠 **Thinks before it acts** — plans multi-step tasks and shows progress in real time
@@ -113,38 +114,71 @@ Enable per-request session logs to trace the full pipeline: intent classificatio
 
 ## 🚀 Getting Started
 
-### Download & Install
+### Option 1: Local Setup with Ollama (Recommended)
 
-1. Go to [**Releases**](https://github.com/dortanes/atlas/releases) and download the latest installer for Windows
-2. Run the installer — Atlas will appear in your system tray
-3. Get a **Gemini API key**: go to [Google AI Studio](https://aistudio.google.com/apikey) → sign in → **Create API Key** → copy it
-4. Click the **Atlas tray icon** → **Settings** → **Intelligence** tab → paste your API key
-5. Set the recommended models in the **Intelligence** tab:
+**Why Ollama?** Complete privacy, no subscription fees, runs entirely on your machine.
 
-   | Setting | Free tier | Paid tier |
-   |---------|-----------|-----------|
-   | **Text model** | `gemini-3.1-flash-lite-preview` | `gemini-3.1-flash-lite-preview` |
-   | **Vision model** | `gemini-3.1-flash-lite-preview` | `gemini-3-flash-preview` |
+**Prerequisites:**
+- [Ollama](https://ollama.ai) — Download and install
+- [Node.js](https://nodejs.org/) ≥ 20
+- [Yarn](https://yarnpkg.com/) ≥ 1.22
 
-   > Vision model handles screen control & Computer Use. Paid tier model is more accurate but requires a billing-enabled API key.
+**Setup Steps:**
 
-6. *(Optional)* For voice output:
-   - **Alice** (free, no API key): **Voice** tab → select **Alice** → done!
-   - **ElevenLabs** (premium voices): get an [ElevenLabs](https://elevenlabs.io/) API key → **Voice** tab → paste key + voice ID
-7. Press `Ctrl+Space` and start giving Atlas tasks 🎉
+1. **Start Ollama with a local model:**
+   ```bash
+   ollama run mistral
+   # or try: llama2, neural-chat, orca-mini
+   ```
 
-### Build from Source
+2. **Clone and build the agent:**
+   ```bash
+   git clone https://github.com/KISHOR-glitch/Ai-Desktop-Agent.git
+   cd Ai-Desktop-Agent
+   yarn install
+   yarn dev
+   ```
 
-> For contributors and developers who want to run Atlas from source.
+3. **Configure the agent:**
+   - Open **Settings** → **Intelligence** tab
+   - **LLM Provider:** Select `Ollama`
+   - **API Endpoint:** `http://localhost:11434` (default)
+   - **Model Name:** `mistral` (or your chosen model)
+   - Click **Save**
+
+4. **Enable voice (optional):**
+   - **Settings** → **Voice** → Enable STT
+   - Download Vosk model (English by default)
+   - Set wake word: `hey agent`
+
+5. **Start using:**
+   - Press `Ctrl+Space`
+   - Speak or type your command
+   - Watch as it automates your screen 🎉
+
+### Option 2: Cloud Setup (Gemini / OpenAI)
+
+If you prefer cloud-based LLMs:
+
+1. Get API key from [Google AI Studio](https://aistudio.google.com/apikey) or OpenAI
+2. Run the agent: `yarn dev`
+3. **Settings** → **Intelligence** → Paste API key
+4. Select your model and start using
+
+### Development
+
+For contributors and developers:
 
 ```bash
 git clone https://github.com/KISHOR-glitch/Ai-Desktop-Agent.git
 cd Ai-Desktop-Agent
 yarn install
-yarn dev
+yarn dev          # Start dev server
+yarn build        # Build for production
+yarn lint:fix     # Fix code style issues
 ```
 
-> **Requires:** [Node.js](https://nodejs.org/) ≥ 20 · [Yarn](https://yarnpkg.com/) ≥ 1.22
+> **Tech Stack:** Electron + React + TypeScript + Vite + Ollama + Vosk
 
 ---
 
@@ -153,9 +187,9 @@ yarn dev
 | Status | Feature |
 |:------:|---------|
 | ✅ | Transparent glassmorphism overlay with Orb + Island UI |
-| ✅ | LLM integration (Gemini + OpenAI) with multi-provider architecture |
-| ✅ | Screen vision + desktop automation (robotjs) |
-| ✅ | Native Gemini [Computer Use API](https://ai.google.dev/gemini-api/docs/computer-use) |
+| ✅ | Local LLM integration via Ollama (privacy-first) |
+| ✅ | Multi-provider LLM support (Gemini + OpenAI + Ollama) |
+| ✅ | Screen vision + desktop automation |
 | ✅ | Smart task planning with step-by-step progress |
 | ✅ | Agent cursor animations (click, type, scroll overlays) |
 | ✅ | Streaming TTS (ElevenLabs + Alice) |
@@ -163,19 +197,36 @@ yarn dev
 | ✅ | Web search + local file search |
 | ✅ | Settings UI with prompt editor + debug logging |
 | ✅ | Intent classification (direct / action / chat) |
-| ✅ | Context caching (Gemini prompt caching for token optimization) |
 | ✅ | Voice input (wake word + local STT via Vosk) |
-| 🔜 | Action whitelist/blacklist & audit log |
-| 🔜 | Onboarding flow |
-| 🔜 | Auto-update |
+| 🔜 | Ollama model auto-download & management UI |
+| 🔜 | Privacy audit log for all operations |
+| 🔜 | Action whitelist/blacklist & safety constraints |
+| 🔜 | Auto-update system |
+| 🔜 | macOS & Linux support |
 
 ---
 
-## ⭐ Support the Project
+## 📚 Project Background
 
-If you find Atlas useful, please consider giving the repository a **star** ⭐ — it helps others discover the project and motivates further development!
+This is an **educational implementation** of the original [ATLAS](https://github.com/dortanes/atlas) project by [dortanes](https://github.com/dortanes), enhanced with:
 
-[![Star on GitHub](https://img.shields.io/github/stars/KISHOR-glitch/Ai-Desktop-Agent?style=social)](https://github.com/KISHOR-glitch/Ai-Desktop-Agent)
+- ✅ **Local LLM Integration** via Ollama for privacy-first operation
+- ✅ **Zero Cloud Dependency** — Keep your data on your machine
+- ✅ **Extended Test Coverage** and performance optimizations  
+- ✅ **Academic Modifications** aligned with educational standards
+- ✅ **Enhanced Documentation** for learning and reference
+
+**Original License:** Apache License 2.0 — see [LICENSE](LICENSE) for full details.
+
+---
+
+## 🌟 Use Cases
+
+- 🔍 **Research & Learning:** Understand how AI desktop automation works
+- 🔒 **Privacy-Conscious Users:** Run AI without cloud dependencies  
+- 🎓 **Students & Developers:** Fork and customize for your own projects
+- ⚡ **Local AI Enthusiasts:** Leverage Ollama for offline-first automation
+- 🤖 **AI Experimentation:** Test different local models and architectures
 
 ## 🤝 Contributing
 
@@ -188,5 +239,7 @@ Contributions are welcome! Feel free to open an issue or submit a pull request.
 ---
 
 <p align="center">
-  AI Desktop Agent by Kishor S R 
+  <b>AI Desktop Agent</b> — Privacy-first desktop automation with Ollama<br/>
+  Built by <a href="https://github.com/KISHOR-glitch">Kishor S R</a> & Mahendra Raj R<br/>
+  Based on <a href="https://github.com/dortanes/atlas">ATLAS</a> by dortanes
 </p>

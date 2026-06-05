@@ -46,6 +46,8 @@ export interface TTSConfig {
 export interface STTConfig {
   enabled: boolean
   language: string
+  wakeWordEnabled: boolean
+  customWakeWord: string
 }
 
 export interface AgentConfig {
@@ -104,8 +106,10 @@ export function useSettings() {
       enabled: true,
     },
     stt: {
-      enabled: false,
+      enabled: true,
       language: 'en',
+      wakeWordEnabled: true,
+      customWakeWord: 'hey atlas',
     },
     agent: {
       maxIterations: 15,

@@ -178,8 +178,9 @@ export class TTSService extends BaseService {
 
     this.speaking = true
     this.abortController = new AbortController()
-    mainEventBus.emit('tts:status', { speaking: true })
+    // Emit format before speaking=true so renderer initializes the right pipeline.
     mainEventBus.emit('tts:format', { format: this.audioFormat })
+    mainEventBus.emit('tts:status', { speaking: true })
 
     try {
       const stream = this.provider.streamSpeech(text)

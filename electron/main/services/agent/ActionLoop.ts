@@ -170,11 +170,26 @@ export async function runActionLoop(
     log.info(`Iteration ${iteration} (failures: ${consecutiveFailures}/${maxConsecutiveFailures})`)
 
     try {
-      // Ask LLM for next action — structured output forces valid JSON
+      // Ask LLM for next action — try structured output, fall back to plain chat + JSON parse
       const stopLLM = sessionLogger?.startTimer(`Iteration ${iteration} LLM call`)
-      const llmResponse = screenshot
-        ? await intelligence.chatWithVisionStructured(messages, screenshot, actionJsonSchema, undefined, systemPrompt, cachedContent ?? undefined)
-        : await intelligence.chatStructured(messages, actionJsonSchema, undefined, systemPrompt, cachedContent ?? undefined)
+      let llmResponse: string
+
+      try {
+        // Tier 1: structured output (guaranteed JSON for capable models)
+        llmResponse = screenshot
+          ? await intelligence.chatWithVisionStructured(messages, screenshot, actionJsonSchema, undefined, systemPrompt, cachedContent ?? undefined)
+          : await intelligence.chatStructured(messages, actionJsonSchema, undefined, systemPrompt, cachedContent ?? undefined)
+      } catch (structuredErr) {
+        // Tier 2: plain chat + manual JSON extraction (for Ollama, LMStudio, etc.)
+        log.warn('Structured output failed, falling back to plain chat + JSON parse:', structuredErr)
+        const plainResponse = screenshot
+          ? await intelligence.chatWithVision(messages, screenshot, undefined, systemPrompt, cachedContent ?? undefined)
+          : await intelligence.chat(messages, undefined, systemPrompt, cachedContent ?? undefined)
+
+        // Extract JSON from the response (LLM may wrap it in markdown code fences)
+        const jsonMatch = plainResponse.match(/```(?:json)?\s*([\s\S]*?)```/) || plainResponse.match(/(\{[\s\S]*\})/)
+        llmResponse = jsonMatch?.[1]?.trim() ?? plainResponse.trim()
+      }
       stopLLM?.()
       screenshot = null
       log.debug(`LLM: ${llmResponse.slice(0, 200)}`)

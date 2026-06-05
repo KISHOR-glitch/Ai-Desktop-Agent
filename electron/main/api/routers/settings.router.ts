@@ -65,6 +65,8 @@ const agentSchema = z.object({
 const sttSchema = z.object({
   enabled: z.boolean().optional(),
   language: z.string().optional(),
+  wakeWordEnabled: z.boolean().optional(),
+  customWakeWord: z.string().optional(),
 }).optional()
 
 export const settingsRouter = trpcRouter({

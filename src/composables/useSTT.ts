@@ -125,6 +125,10 @@ async function startMic(): Promise<void> {
   if (!model) await loadModel()
   if (!model) return
 
+  // Load current wake word settings
+  wakeWordEnabled = await getWakeWordEnabled()
+  customWakeWord = await getCustomWakeWord()
+
   const sampleRate = 16000
 
   recognizer = new model.KaldiRecognizer(sampleRate)
@@ -162,7 +166,8 @@ async function startMic(): Promise<void> {
 
   phase.value = 'idle'
   initVisibilityWatch()
-  console.info('[useSTT] Mic started, listening for wake word...')
+  const wakeWordText = customWakeWord || 'wake word'
+  console.info(`[useSTT] Mic started, listening for "${wakeWordText}"...`)
 }
 
 function stopMic(): void {
@@ -200,10 +205,59 @@ function createWorkletBlob(): string {
 
 // ── Wake word + transcript handling ──
 
+let wakeWordEnabled = true
+let customWakeWord = ''
+
+async function getWakeWordEnabled(): Promise<boolean> {
+  try {
+    const config = await api.settings.getConfig.query()
+    return config.stt.wakeWordEnabled
+  } catch {
+    return true // Default to enabled if config fetch fails
+  }
+}
+
+async function getCustomWakeWord(): Promise<string> {
+  try {
+    const config = await api.settings.getConfig.query()
+    return (config.stt.customWakeWord || '').trim()
+  } catch {
+    return '' // Fallback to persona name if config fetch fails
+  }
+}
+
 function getWakeWord(): string {
+  // Use custom wake word if explicitly set, otherwise fall back to active persona name.
+  if (customWakeWord.trim()) {
+    return customWakeWord.toLowerCase()
+  }
   const { activePersona } = usePersonas()
-  const name = (activePersona.value?.name || 'atlas').toLowerCase()
+  const name = (activePersona.value?.name || 'atlas').trim().toLowerCase()
   return name
+}
+
+function getWakeWordCandidates(): string[] {
+  const base = getWakeWord().trim().toLowerCase()
+  if (!base) return ['atlas', 'hey atlas']
+
+  const values = new Set<string>([base])
+  if (!base.startsWith('hey ')) values.add(`hey ${base}`)
+  return [...values]
+}
+
+function escapeRegex(text: string): string {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
+function wakeWordToRegex(wake: string): RegExp {
+  // Allow punctuation/extra spacing between words: "hey, atlas" / "hey   atlas"
+  const words = wake.trim().split(/\s+/).map(escapeRegex)
+  const pattern = words.join('[\\s,.;:!?-]*')
+  return new RegExp(`\\b${pattern}\\b`, 'i')
+}
+
+function hasWakeWord(text: string): boolean {
+  return getWakeWordCandidates().some((candidate) => wakeWordToRegex(candidate).test(text))
 }
 
 function onPartialResult(msg: any): void {
@@ -214,7 +268,11 @@ function onPartialResult(msg: any): void {
   if (Date.now() - lastSubmitTime < 500) return
 
   if (phase.value === 'idle') {
-    if (partial.toLowerCase().includes(getWakeWord())) {
+    if (!wakeWordEnabled) {
+      // Wake word disabled — activate on any speech
+      activate(partial)
+    } else if (hasWakeWord(partial)) {
+      // Wake word enabled — check for persona name
       activate(partial)
     }
   } else if (phase.value === 'activated' || phase.value === 'listening') {
@@ -235,7 +293,11 @@ function onResult(msg: any): void {
   if (Date.now() - lastSubmitTime < 500) return
 
   if (phase.value === 'idle') {
-    if (text.toLowerCase().includes(getWakeWord())) {
+    if (!wakeWordEnabled) {
+      // Wake word disabled — activate on any speech
+      activate(text)
+    } else if (hasWakeWord(text)) {
+      // Wake word enabled — check for persona name
       activate(text)
     }
   } else if (phase.value === 'activated' || phase.value === 'listening') {
@@ -255,6 +317,16 @@ function activate(initialText: string): void {
   stopPlayback()
   api.audio.stopSpeaking.mutate().catch(() => {})
   ttsSpeaking = false
+
+  // Reset recognizer when activating new command to clear previous state
+  if (recognizer && model) {
+    const sampleRate = 16000
+    recognizer.remove()
+    recognizer = new model.KaldiRecognizer(sampleRate)
+    recognizer.on('result', onResult)
+    recognizer.on('partialresult', onPartialResult)
+    console.info('[useSTT] Recognizer reset for new command')
+  }
 
   phase.value = 'activated'
   transcript.value = ''
@@ -277,11 +349,11 @@ function activate(initialText: string): void {
 }
 
 function stripWakeWord(text: string): string {
-  const wake = getWakeWord()
-  const lower = text.toLowerCase()
-  const idx = lower.indexOf(wake)
-  if (idx >= 0) {
-    return text.slice(idx + wake.length).trim()
+  for (const candidate of getWakeWordCandidates()) {
+    const re = wakeWordToRegex(candidate)
+    if (re.test(text)) {
+      return text.replace(re, '').trim()
+    }
   }
   return text
 }
@@ -322,6 +394,10 @@ function submitTranscript(): void {
   transcript.value = ''
   chunks.value = []
   api.audio.stopListening.mutate()
+
+  // Signal to restart listening after agent completes task
+  // MainView will call startListening() when agent state returns to idle
+  console.info('[useSTT] Awaiting agent completion before resuming listen')
 }
 
 // ── Public API ──

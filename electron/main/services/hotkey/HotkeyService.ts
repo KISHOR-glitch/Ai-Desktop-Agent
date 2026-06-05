@@ -17,6 +17,9 @@ export class HotkeyService extends BaseService {
 
   /** Live modifier state */
   private modifiers = { ctrl: false, alt: false, shift: false, meta: false }
+  
+  /** Prevent rapid firing on holding the key */
+  private isPressed = false
 
   private keydownHandler: ((e: import('uiohook-napi').UiohookKeyboardEvent) => void) | null = null
   private keyupHandler: ((e: import('uiohook-napi').UiohookKeyboardEvent) => void) | null = null
@@ -118,8 +121,11 @@ export class HotkeyService extends BaseService {
         this.modifiers.meta === this.hotkey.meta &&
         e.keycode === this.hotkey.keycode
       ) {
-        this.log.debug(`Global hotkey: ${getConfig().hotkey} → toggle Atlas`)
-        mainEventBus.emit('hotkey:toggle-atlas')
+        if (!this.isPressed) {
+          this.isPressed = true
+          this.log.debug(`Global hotkey: ${getConfig().hotkey} → toggle Atlas`)
+          mainEventBus.emit('hotkey:toggle-atlas')
+        }
       }
     }
 
@@ -128,6 +134,18 @@ export class HotkeyService extends BaseService {
       if (e.keycode === K.Alt || e.keycode === K.AltRight) this.modifiers.alt = false
       if (e.keycode === K.Shift || e.keycode === K.ShiftRight) this.modifiers.shift = false
       if (e.keycode === K.Meta || e.keycode === K.MetaRight) this.modifiers.meta = false
+      
+      // Reset isPressed if the combo no longer matches (any modifier or main key released)
+      const comboMatches =
+        this.modifiers.ctrl === this.hotkey.ctrl &&
+        this.modifiers.alt === this.hotkey.alt &&
+        this.modifiers.shift === this.hotkey.shift &&
+        this.modifiers.meta === this.hotkey.meta &&
+        e.keycode === this.hotkey.keycode
+      
+      if (!comboMatches) {
+        this.isPressed = false
+      }
     }
 
     this.uiohook!.on('keydown', this.keydownHandler)

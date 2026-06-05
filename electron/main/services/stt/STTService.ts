@@ -20,6 +20,11 @@ export class STTService extends BaseService {
 
     if (!config.stt.enabled) {
       this.log.info('STT is disabled in config')
+      mainEventBus.emit('agent:warning', {
+        id: 'stt-disabled',
+        message: 'Voice input is disabled. Enable STT in Settings -> Voice to use wake word.',
+        dismissable: true,
+      })
       return
     }
 

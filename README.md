@@ -86,6 +86,20 @@ Atlas remembers your preferences and context across sessions. It learns facts ab
 ### 🎙 Voice Input
 Local offline speech-to-text via Vosk — just say the wake word (the active persona's name) and Atlas starts listening. No cloud API required.
 
+Enable it in a minute:
+- Open **Settings** → **Voice**
+- Turn on **Enable STT**
+- Turn on **Enable Wake Word** (optional, but recommended)
+- Set **Wake Word** (default: `hey atlas`)
+- Choose **Language**
+- Click **Download** to install the Vosk STT model
+- Say the wake word, then speak your command
+
+Implementation reference:
+- Frontend wake-word + transcript flow: `src/composables/useSTT.ts`
+- Backend STT model/service layer: `electron/main/services/stt/STTService.ts`
+- Default STT config (`enabled`, `wakeWordEnabled`, `customWakeWord`): `electron/main/utils/config/defaults.ts`
+
 ### ✍️ Editable Prompts
 Full control over the AI's behavior — modify system, action, and safety prompts directly from the Settings UI. Reset to defaults anytime.
 

@@ -13,6 +13,7 @@
     "lib": ["ESNext", "DOM"],
     "skipLibCheck": true,
     "noEmit": true,
+    "ignoreDeprecations": "5.0",
     "baseUrl": ".",
     "paths": {
       "@api/*": ["electron/main/api/*"],
@@ -20,7 +21,7 @@
       "@electron/*": ["electron/main/*"]
     }
   },
-  "include": ["src", "electron/main/api"],
+  "include": ["src", "electron/main/api", "electron/main/services", "electron/main/utils"],
   "references": [
     { "path": "./tsconfig.node.json" }
   ]

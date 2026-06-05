@@ -102,6 +102,10 @@ export interface STTConfig {
   enabled: boolean
   /** Language code for model selection (e.g. 'en', 'ru') */
   language: string
+  /** Whether wake word detection is enabled */
+  wakeWordEnabled: boolean
+  /** Custom wake word phrase (e.g. 'hey atlas') */
+  customWakeWord: string
 }
 
 // ═══════════════════════════════════════════════════════════════

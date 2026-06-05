@@ -116,15 +116,39 @@ export async function runDirectAction(
     // Cache system prompt + direct_action prompt for token savings
     const cachedContent = await intelligence.getCache(systemPrompt, persona.id, directPrompt, 'direct').catch(() => null)
 
-    // Single LLM call — structured output for guaranteed JSON
+    // Single LLM call — try structured output first, fall back to plain chat + JSON parse
     const stopLLM = sessionLogger?.startTimer('LLM call')
-    const llmResponse = await intelligence.chatStructured(
-      messages,
-      directActionJsonSchema,
-      undefined,
-      systemPrompt,
-      cachedContent ?? undefined,
-    )
+    let llmResponse: string
+
+    try {
+      // Tier 1: structured output (guaranteed JSON for capable models)
+      llmResponse = await intelligence.chatStructured(
+        messages,
+        directActionJsonSchema,
+        undefined,
+        systemPrompt,
+        cachedContent ?? undefined,
+      )
+    } catch (structuredErr) {
+      // Tier 2: plain chat + manual JSON extraction (for Ollama, LMStudio, etc.)
+      log.warn('Structured output failed, falling back to plain chat + JSON parse:', structuredErr)
+      sessionLogger?.step('Structured output failed → plain chat fallback')
+
+      const plainResponse = await intelligence.chat(
+        messages,
+        undefined,
+        systemPrompt,
+        cachedContent ?? undefined,
+      )
+
+      // Extract JSON from the response (LLM may wrap it in markdown code fences)
+      const jsonMatch = plainResponse.match(/```(?:json)?\s*([\s\S]*?)```/) || plainResponse.match(/(\{[\s\S]*\})/)
+      if (jsonMatch?.[1]) {
+        llmResponse = jsonMatch[1].trim()
+      } else {
+        llmResponse = plainResponse.trim()
+      }
+    }
     stopLLM?.()
 
     log.debug(`LLM: ${llmResponse.slice(0, 300)}`)
@@ -337,28 +361,9 @@ export async function runDirectAction(
 
       if (!result.success) {
         log.error(`Direct action failed: ${result.error}`)
-        // Ask LLM to explain the failure to the user in natural language.
-        // The pre-generated `action.response` assumed success, so we can't use it.
-        try {
-          const errorMessages: LLMMessage[] = [
-            ...history,
-            { role: 'user', text: command },
-            {
-              role: 'model',
-              text: `I tried to execute: ${action.command || action.keys?.join('+') || action.key || action.action}\nBut it failed with this error:\n${result.error}`,
-            },
-            {
-              role: 'user',
-              text: 'Explain what went wrong in 1-2 sentences. Be concise and helpful. Suggest a fix if obvious.',
-            },
-          ]
-          const stopSummary = sessionLogger?.startTimer('Error explanation LLM call')
-          fullResponse = await intelligence.chat(errorMessages, undefined, systemPrompt)
-          stopSummary?.()
-          sessionLogger?.step(`Error response: "${fullResponse.slice(0, 120)}"`)
-        } catch {
-          fullResponse = `Failed to execute: ${result.error?.split('\n')[0] ?? 'Unknown error'}`
-        }
+        // Return the exact error to the user. Small local models often hallucinate
+        // when asked to summarize shell errors (e.g. claiming "it's not implemented").
+        fullResponse = `Failed to execute: ${result.error?.trim() || 'Unknown error'}`
       } else {
         fullResponse = action.response || action.text || 'Done.'
         log.info(`Direct action OK: ${action.reason}`)

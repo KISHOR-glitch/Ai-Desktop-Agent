@@ -202,12 +202,17 @@ export default defineComponent({
           sfx.processing()
         } else if (data.state === 'idle' && (prevState === 'processing' || prevState === 'acting')) {
           sfx.responseReady()
-          // Auto-show InputBar for follow-up — only if STT is OFF
-          if (agentVisible.value && !sttEnabled.value) {
-            setTimeout(() => {
-              inputDismissing.value = false
-              showInput.value = true
-            }, 1500)
+          if (agentVisible.value) {
+            if (sttEnabled.value) {
+              // Resume listening for next command after agent completes task
+              api.audio.startListening.mutate().catch(() => {})
+            } else {
+              // Auto-show InputBar for follow-up — only if STT is OFF
+              setTimeout(() => {
+                inputDismissing.value = false
+                showInput.value = true
+              }, 1500)
+            }
           }
         } else if (data.state === 'warning') {
           sfx.warning()

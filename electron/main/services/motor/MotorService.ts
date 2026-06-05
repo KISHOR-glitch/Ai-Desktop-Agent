@@ -138,7 +138,7 @@ export class MotorService extends BaseService {
           break
 
         case 'runCommand': {
-          if (!action.command) throw new Error('runCommand action requires command')
+          if (!action.command) throw new Error('The AI agent decided to run a shell command but failed to specify which command to run.')
           const shellResult = await this.shell.exec(action.command)
           this.log.info(`Command exit code: ${shellResult.exitCode}`)
           return {

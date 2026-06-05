@@ -102,6 +102,7 @@ export default defineComponent({
   },
 
   render() {
+    const blobPath = "M 100 600 q 0 -500, 500 -500 t 500 500 t -500 500 T 100 600 z"
     return (
       <div class={['orb', this.stateClass].join(' ')} ref="orbRef">
         {/* Background glow */}
@@ -110,16 +111,16 @@ export default defineComponent({
         {/* SVG blob cluster */}
         <svg class="orb__svg" viewBox="0 0 1200 1200">
           {/* Primary blobs */}
-          <g class="orb__blob orb__blob-1"><path /></g>
-          <g class="orb__blob orb__blob-2"><path /></g>
-          <g class="orb__blob orb__blob-3"><path /></g>
-          <g class="orb__blob orb__blob-4"><path /></g>
+          <g class="orb__blob orb__blob-1"><path d={blobPath} /></g>
+          <g class="orb__blob orb__blob-2"><path d={blobPath} /></g>
+          <g class="orb__blob orb__blob-3"><path d={blobPath} /></g>
+          <g class="orb__blob orb__blob-4"><path d={blobPath} /></g>
 
           {/* Alt blobs — reverse rotation, lower opacity for depth */}
-          <g class="orb__blob orb__blob-1 orb__blob--alt"><path /></g>
-          <g class="orb__blob orb__blob-2 orb__blob--alt"><path /></g>
-          <g class="orb__blob orb__blob-3 orb__blob--alt"><path /></g>
-          <g class="orb__blob orb__blob-4 orb__blob--alt"><path /></g>
+          <g class="orb__blob orb__blob-1 orb__blob--alt"><path d={blobPath} /></g>
+          <g class="orb__blob orb__blob-2 orb__blob--alt"><path d={blobPath} /></g>
+          <g class="orb__blob orb__blob-3 orb__blob--alt"><path d={blobPath} /></g>
+          <g class="orb__blob orb__blob-4 orb__blob--alt"><path d={blobPath} /></g>
         </svg>
       </div>
     )

@@ -22,6 +22,8 @@ let audioElement: HTMLAudioElement | null = null
 let pendingChunks: Uint8Array[] = []
 let sourceBufferReady = false
 let subscribed = false
+let blobMimeCandidates: string[] = ['audio/ogg; codecs=opus', 'audio/ogg', 'audio/webm; codecs=opus', 'application/octet-stream']
+let useBlobFallbackForMpeg = false
 
 // ── Helpers ──
 
@@ -64,6 +66,8 @@ function resetMSE() {
   pendingChunks = []
   sourceBuffer = null
   sourceBufferReady = false
+  useBlobFallbackForMpeg = false
+  blobChunks = []
 
   // Create fresh MediaSource
   mediaSource = new MediaSource()
@@ -86,9 +90,16 @@ function resetMSE() {
       // Start playback
       audioElement?.play().catch((err) => {
         console.warn('[useTTS] Playback failed:', err)
+        // If streaming playback is blocked/fails, fall back to blob mode for this session.
+        useBlobFallbackForMpeg = true
       })
     } catch (err) {
       console.error('[useTTS] Failed to create SourceBuffer:', err)
+      // Some environments fail MSE audio/mpeg — switch to blob playback fallback.
+      useBlobFallbackForMpeg = true
+      blobChunks = [...pendingChunks]
+      pendingChunks = []
+      resetBlob()
     }
   })
 }
@@ -151,7 +162,7 @@ function addChunkBlob(base64Data: string) {
 }
 
 /** All chunks received — create blob URL and play */
-function endStreamBlob() {
+async function endStreamBlob() {
   if (blobChunks.length === 0) return
 
   // Merge all chunks into a single Uint8Array for Blob constructor
@@ -163,19 +174,29 @@ function endStreamBlob() {
     offset += c.length
   }
 
-  const blob = new Blob([merged.buffer], { type: 'audio/ogg; codecs=opus' })
-  const url = URL.createObjectURL(blob)
-
   if (!audioElement) audioElement = new Audio()
-  audioElement.src = url
-  audioElement.play().catch((err) => {
-    console.warn('[useTTS] Blob playback failed:', err)
-  })
 
-  // Clean up blob URL when done
-  audioElement.addEventListener('ended', () => {
-    URL.revokeObjectURL(url)
-  }, { once: true })
+  let started = false
+  for (const mime of blobMimeCandidates) {
+    const blob = new Blob([merged.buffer], { type: mime })
+    const url = URL.createObjectURL(blob)
+    audioElement.src = url
+    try {
+      await audioElement.play()
+      started = true
+      audioElement.addEventListener('ended', () => {
+        URL.revokeObjectURL(url)
+      }, { once: true })
+      break
+    } catch (err) {
+      URL.revokeObjectURL(url)
+      console.warn(`[useTTS] Blob playback failed (${mime}):`, err)
+    }
+  }
+
+  if (!started) {
+    console.error('[useTTS] Blob playback failed for all mime candidates')
+  }
 
   blobChunks = []
 }
@@ -190,6 +211,17 @@ function initSubscriptions() {
   api.audio.onTTSFormat.subscribe(undefined, {
     onData(data: { format: 'mpeg' | 'opus' }) {
       currentFormat = data.format
+      blobMimeCandidates = data.format === 'mpeg'
+        ? ['audio/mpeg', 'audio/mp3', 'application/octet-stream']
+        : ['audio/ogg; codecs=opus', 'audio/ogg', 'audio/webm; codecs=opus', 'application/octet-stream']
+      // If status=true already arrived, rebuild with the correct format immediately.
+      if (speaking.value) {
+        if (currentFormat === 'opus') {
+          resetBlob()
+        } else {
+          resetMSE()
+        }
+      }
     },
   })
 
@@ -219,10 +251,18 @@ function initSubscriptions() {
           addChunkBlob(data.data)
         }
       } else {
-        if (data.done) {
-          endStreamMSE()
+        if (useBlobFallbackForMpeg) {
+          if (data.done) {
+            endStreamBlob()
+          } else {
+            addChunkBlob(data.data)
+          }
         } else {
-          addChunkMSE(data.data)
+          if (data.done) {
+            endStreamMSE()
+          } else {
+            addChunkMSE(data.data)
+          }
         }
       }
     },

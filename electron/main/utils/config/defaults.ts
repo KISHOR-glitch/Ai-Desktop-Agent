@@ -11,19 +11,19 @@ import type { AppConfig } from './schema'
 export const defaultConfig: AppConfig = {
   ui: {
     positionSide: 'right',
-    openDevTools: !app.isPackaged,
+    openDevTools: false,
     logLevel: 'debug',
     debugLog: false,
     soundEnabled: true,
     soundVolume: 0.5,
   },
   llm: {
-    provider: 'gemini',
-    baseURL: 'http://localhost:1234/v1',
-    apiKey: '',
-    textModel: 'gemini-3.1-flash-lite-preview',
-    visionModel: '',
-    classifierModel: '',
+    provider: 'openai',
+    baseURL: 'http://localhost:11434/v1',
+    apiKey: 'ollama',
+    textModel: 'mistral',
+    visionModel: 'mistral',
+    classifierModel: 'mistral',
   },
   generation: {
     chatTemperature: 0.7,
@@ -35,14 +35,16 @@ export const defaultConfig: AppConfig = {
   },
   tts: {
     provider: 'elevenlabs',
-    apiKey: '',
+    apiKey: 'sk_80966be051180003d9c37e2745b85659bee521765a4f705e',
     voiceId: 'JBFqnCBsd6RMkjVDRZzb',
     model: 'eleven_flash_v2_5',
     enabled: true,
   },
   stt: {
-    enabled: false,
+    enabled: true,
     language: 'en',
+    wakeWordEnabled: true,
+    customWakeWord: '',
   },
   agent: {
     maxIterations: 15,

@@ -166,6 +166,27 @@ export default defineComponent({
             </div>
             <div class="settings-row">
               <div class="settings-row__info">
+                <span class="settings-row__label">Enable Wake Word</span>
+                <span class="settings-row__hint">Listen for wake word to activate</span>
+              </div>
+              <div class="settings-row__control">
+                <input type="checkbox" class="settings-field__toggle" checked={stt.wakeWordEnabled}
+                  onChange={(e: Event) => { stt.wakeWordEnabled = (e.target as HTMLInputElement).checked }} />
+              </div>
+            </div>
+            {stt.wakeWordEnabled && (
+              <div style="margin-top: 12px;">
+                <label class="settings-field">
+                  <span class="settings-field__label">Wake Word</span>
+                  <span class="settings-field__hint">Leave empty to use active persona name</span>
+                  <input type="text" class="settings-field__input" value={stt.customWakeWord}
+                    placeholder="e.g. hey atlas (or leave empty)"
+                    onInput={(e: Event) => { stt.customWakeWord = (e.target as HTMLInputElement).value }} />
+                </label>
+              </div>
+            )}
+            <div class="settings-row">
+              <div class="settings-row__info">
                 <span class="settings-row__label">Language</span>
               </div>
               <div class="settings-row__control">

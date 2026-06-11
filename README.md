@@ -231,15 +231,3 @@ This is an **educational implementation** of the original [ATLAS](https://github
 ## 🤝 Contributing
 
 Contributions are welcome! Feel free to open an issue or submit a pull request.
-
-## 📜 License
-
-[Apache License 2.0](LICENSE) — use it, modify it, build on it.
-
----
-
-<p align="center">
-  <b>AI Desktop Agent</b> — Privacy-first desktop automation with Ollama<br/>
-  Built by <a href="https://github.com/KISHOR-glitch">Kishor S R</a> & Mahendra Raj R<br/>
-  Based on <a href="https://github.com/dortanes/atlas">ATLAS</a> by dortanes
-</p>
